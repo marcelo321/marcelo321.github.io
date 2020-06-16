@@ -2,22 +2,19 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Atul</title>
-    <link>https://0xatul.github.io/</link>
-    <description>Recent content on Atul</description>
+    <link>https://marcelo321.github.io/</link>
+    <description>zonduu</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Sat, 08 Feb 2020 23:04:58 +0545</lastBuildDate>
     
-	<atom:link href="https://0xatul.github.io/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="https://marcelo321.github.io/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
-      <title>External XML Entity via File Upload (SVG)</title>
-      <link>https://0xatul.github.io/posts/2020/02/external-xml-entity-via-file-upload-svg/</link>
-      <pubDate>Sat, 08 Feb 2020 23:04:58 +0545</pubDate>
+      <title>Idor in session Cookie leading to Mass Accoutn Takeover</title>
+            <pubDate>Sat, 08 Feb 2020 23:04:58 +0545</pubDate>
       
-      <guid>https://0xatul.github.io/posts/2020/02/external-xml-entity-via-file-upload-svg/</guid>
-      <description>Write-up: XXE-File-upload ( SVG )
 Baby paws:
  I looked for what are the functionalites available in the WEB app just to see what are the possible attack vectors. I analyzed the WAF and found what triggers it and what are blocked characters I found a upload field that explicitly uses these three formats: PNG, XML, and EPS. ie The upload field for the avatar. That allowed me to check for imagetragick, ghost script and some fuckery over file uploads!</description>
     </item>
