@@ -1,4 +1,3 @@
-<script>
 var url = "/account_settings.htm";
 var xhr = new XMLHttpRequest();
     xhr.responseType = "document";
@@ -25,4 +24,3 @@ var xhr = new XMLHttpRequest();
         }
     };
     xhr.send(null);
-    </script>
