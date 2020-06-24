@@ -10,6 +10,8 @@ token = getCookie('api_token');
 email = getCookie('name');
 email2 = email.replace('@', '%40').toUpperCase();
 
+console.log(token, email2);
+
 
 var xhr = new XMLHttpRequest();
 xhr.open("PATCH", "/api/consumers/"+email2+"/profile/v2", true);     
