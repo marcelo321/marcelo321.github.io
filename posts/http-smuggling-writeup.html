@@ -196,6 +196,18 @@ receive a connection from a different IP that you have (best scenario).</p>
 able to steal the cookies, achieving massive Session Takeover, yay!</p>
 <p>A good example of this scenario is shown in this amazing report: <a href="https://hackerone.com/reports/737140">#737140</a> where @defparam was
 able to leak the session cookie, leading to mass session takeover of the users affected.</p>
+          
+<h3 id="conclusion">Where to practice?</h3>
+<ul>
+
+<li> I highly recommend checking the <a href="https://portswigger.net/web-security/request-smuggling">labs of Portswigger</a>, they have everything you need to know to understand this vulnerability type and get you going. </li>
+<li> Private programs. As stupid as it sounds, private programs are a good place to try and find http smuggling vulnerabilities because they are less tested than public programs. I personally found 3 in 3 different
+private programs, but 0 in public programs.</li>
+<li> Go for subdomains too! scanning for subs takes more time, but the chances of hitting a subdomain that no-one else scanned for http-smuggling are higher.</li>
+
+
+</ul>       
+          
 <h3 id="conclusion">Conclusion</h3>
 <ul>
 <li>This is a hard vulnerability type to identify and exploit, it requires time to manually validate it and then look into how to exploit it&hellip; take your time!</li>
