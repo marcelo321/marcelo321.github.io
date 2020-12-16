@@ -182,8 +182,8 @@ on085=x&amp;bcf5i=x
 
 GET https://MYSERVER.COM HTTP/1.1
 X-Ignore: X
-</code></pre><p>But if you can&rsquo;t, because you get an error or whatever, there are other options like DoS, leverating the impact of XSS, triggering
-a harmful request on the victim&rsquo;s account, etc. as it explains further the different cases of explotation. A must read is <a href="https://portswigger.net/research/http-desync-attacks-request-smuggling-reborn">Albinowax&rsquo;s guide</a>. It explains everything you need to know and different cases of explotation.</p>
+</code></pre><p>But if you can&rsquo;t, because you get an error or whatever, there are other options like DoS, leveraging the impact of XSS, triggering
+a harmful request on the victim&rsquo;s account, and a few more scenarios. A must read is <a href="https://portswigger.net/research/http-desync-attacks-request-smuggling-reborn">Albinowax&rsquo;s guide</a>. It explains everything you need to know and different cases of explotation.</p>
 <p>If you are in a stage environment like I was, and there is 0 traffic going on, you need
 to generate traffic from other IP. You can use 2 machines, one smuggles the requests and the
 other one (with other IP) tries to get smuggled.</p>
