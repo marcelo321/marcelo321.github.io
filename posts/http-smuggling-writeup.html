@@ -5,8 +5,8 @@
 <meta http-equiv="X-UA-Compatible" content="ie=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="author" content="">
-<meta name="description" content="Clarification: I&amp;rsquo;m not an expert in finding and exploiting HTTP Smuggling but I will share how I found a couple of them and the steps I make to exploit them.
-How to find them? Basically there are 2 main ways of finding HTTP Smuggling vulnerabilities right now. Using the burp extension or using the @defparam tool (also public) on github called Smuggler.
+<meta name="description" content="Clarification: I&amp;rsquo;m not an expert in finding and exploiting HTTP Request Smuggling but I will share how I found a couple of them and the steps I make to exploit them.
+How to find them? Basically there are 2 main ways of finding HTTP Request Smuggling vulnerabilities right now. Using the burp extension or using the @defparam tool (also public) on github called Smuggler.
 Not to mention you can also build your own tool to detect them but I recommend to try those first, and then you can work on your own once you get the hand of it." />
 <meta name="keywords" content="" />
 <meta name="robots" content="noodp" />
@@ -16,7 +16,7 @@ Not to mention you can also build your own tool to detect them but I recommend t
 
     <title>
         
-            Finding and exploiting HTTP Smuggling ::
+            Finding and exploiting HTTP Request Smuggling ::
         
     </title>
 
@@ -34,9 +34,9 @@ Not to mention you can also build your own tool to detect them but I recommend t
 
 
 
-<meta itemprop="name" content="Finding and exploiting HTTP Smuggling">
-<meta itemprop="description" content="Clarification: I&rsquo;m not an expert in finding and exploiting HTTP Smuggling but I will share how I found a couple of them and the steps I make to exploit them.
-How to find them? Basically there are 2 main ways of finding HTTP Smuggling vulnerabilities right now. Using the burp extension or using the @defparam tool (also public) on github called Smuggler.
+<meta itemprop="name" content="Finding and exploiting HTTP Request Smuggling">
+<meta itemprop="description" content="Clarification: I&rsquo;m not an expert in finding and exploiting HTTP Request Smuggling but I will share how I found a couple of them and the steps I make to exploit them.
+How to find them? Basically there are 2 main ways of finding HTTP Request Smuggling vulnerabilities right now. Using the burp extension or using the @defparam tool (also public) on github called Smuggler.
 Not to mention you can also build your own tool to detect them but I recommend to try those first, and then you can work on your own once you get the hand of it.">
 
 <meta itemprop="wordCount" content="690">
@@ -49,16 +49,16 @@ Not to mention you can also build your own tool to detect them but I recommend t
 <meta name="twitter:card" content="summary_large_image"/>
 <meta name="twitter:image" content="//zonduu.me/"/>
 
-<meta name="twitter:title" content="Finding and exploiting HTTP Smuggling"/>
-<meta name="twitter:description" content="Clarification: I&rsquo;m not an expert in finding and exploiting HTTP Smuggling but I will share how I found a couple of them and the steps I make to exploit them.
-How to find them? Basically there are 2 main ways of finding HTTP Smuggling vulnerabilities right now. Using the burp extension or using the @defparam tool (also public) on github called Smuggler.
+<meta name="twitter:title" content="Finding and exploiting HTTP Request Smuggling"/>
+<meta name="twitter:description" content="Clarification: I&rsquo;m not an expert in finding and exploiting HTTP Request Smuggling but I will share how I found a couple of them and the steps I make to exploit them.
+How to find them? Basically there are 2 main ways of finding HTTP Request Smuggling vulnerabilities right now. Using the burp extension or using the @defparam tool (also public) on github called Smuggler.
 Not to mention you can also build your own tool to detect them but I recommend to try those first, and then you can work on your own once you get the hand of it."/>
 
 
 
-    <meta property="og:title" content="Finding and exploiting HTTP Smuggling" />
-<meta property="og:description" content="Clarification: I&rsquo;m not an expert in finding and exploiting HTTP Smuggling but I will share how I found a couple of them and the steps I make to exploit them.
-How to find them? Basically there are 2 main ways of finding HTTP Smuggling vulnerabilities right now. Using the burp extension or using the @defparam tool (also public) on github called Smuggler.
+    <meta property="og:title" content="Finding and exploiting HTTP Request Smuggling" />
+<meta property="og:description" content="Clarification: I&rsquo;m not an expert in finding and exploiting HTTP Request Smuggling but I will share how I found a couple of them and the steps I make to exploit them.
+How to find them? Basically there are 2 main ways of finding HTTP Request Smuggling vulnerabilities right now. Using the burp extension or using the @defparam tool (also public) on github called Smuggler.
 Not to mention you can also build your own tool to detect them but I recommend to try those first, and then you can work on your own once you get the hand of it." />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="//zonduu.me/posts/http-smuggling-writeup/" />
@@ -142,23 +142,23 @@ Not to mention you can also build your own tool to detect them but I recommend t
 
     <article>
       <h1 class="post-title">
-        <a href="//zonduu.me/posts/http-smuggling-writeup/">Finding and exploiting HTTP Smuggling</a>
+        <a href="//zonduu.me/posts/http-smuggling-writeup/">Finding and exploiting HTTP Request Smuggling</a>
       </h1>
 
 
       <div class="post-content">
-        <p><strong><u>Clarification</u>:</strong> I&rsquo;m not an expert in finding and exploiting HTTP Smuggling but I will share how I
+        <p><strong><u>Clarification</u>:</strong> I&rsquo;m not an expert in finding and exploiting HTTP Request Smuggling but I will share how I
 found a couple of them and the steps I make to exploit them.</p>
 <h3 id="how-to-find-them">How to find them?</h3>
-<p>Basically there are 2 main ways of finding HTTP Smuggling vulnerabilities right now. Using the <a href="https://portswigger.net/bappstore/aaaa60ef945341e8a450217a54a11646">burp extension</a>
+<p>Basically there are 2 main ways of finding HTTP Request Smuggling vulnerabilities right now. Using the <a href="https://portswigger.net/bappstore/aaaa60ef945341e8a450217a54a11646">burp extension</a>
 or using the @defparam tool (also public) on github called <a href="https://github.com/defparam/smuggler">Smuggler</a>.</p>
 <p>Not to mention you can also build your own tool to detect them but I recommend to try those
 first, and then you can work on your own once you get the hand of it.</p>
-<p>Both tools give you alerts when a possible HTTP Smuggling case appears, this means that after
+<p>Both tools give you alerts when a possible HTTP Request Smuggling case appears, this means that after
 you receive one, you need to check if it is a false positive or valid case.</p>
 <p>This is important to clarify since this specific vulnerability type gives a lot of false annoying positives.</p>
 <h3 id="how-to-exploit-them">How to exploit them?</h3>
-<p>Ok let&rsquo;s say that you managed to find a valid case of http smuggling. It is possible to validate it using either the burp extension&rsquo;s option to check for CLTE/TECL
+<p>Ok let&rsquo;s say that you managed to find a valid case of HTTP Request Smuggling. It is possible to validate it using either the burp extension&rsquo;s option to check for CLTE/TECL
 or the <a href="https://github.com/defparam/tiscripts">script</a> from @defparam in turbo intruder, now what?</p>
 <p>Well now you need to check if it is an Open Desync or Self Desync&hellip; wait what? yes. Apparently you can have a self-desync, meaning that you are only
 affecting yourself (your connection).</p>
@@ -200,7 +200,7 @@ able to leak the session cookie, leading to mass session takeover of the users a
 <ul>
 
 <li> I highly recommend checking the <a href="https://portswigger.net/web-security/request-smuggling">labs of Portswigger</a>, they have everything you need to know to understand this vulnerability type and get you going. </li>
-<li> Private programs. As stupid as it sounds, private programs are a good place to try and find http smuggling vulnerabilities because they are less tested than public programs. I personally found 3 in 3 different
+<li> Private programs. As stupid as it sounds, private programs are a good place to try and find HTTP Request Smuggling vulnerabilities because they are less tested than public programs. I personally found 3 in 3 different
 private programs, but 0 in public programs.</li>
 <li> Go for subdomains too! scanning for subs takes more time, but the chances of hitting a subdomain that no-one else scanned for http-smuggling are higher.</li>
 
