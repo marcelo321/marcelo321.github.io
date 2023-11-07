@@ -1,0 +1,9 @@
+{
+    "url": "https://zonduu.me/test.yaml",
+    "urls": [
+        {
+            "url": "https://zonduu.me/test.yaml",
+            "name": "Foo"
+        }
+    ]
+}
