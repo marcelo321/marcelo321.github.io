@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Posts on zonduu</title>
+    
+    
+    
+    <link>https://zonduu.me/posts/</link>
+    <description>Recent content in Posts on zonduu</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Fri, 01 May 2020 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="https://zonduu.me/posts/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>IDOR in Session cookie leading to Mass Account Takeover</title>
+      <link>https://zonduu.me/posts/idor-session-cookie/</link>
+      <pubDate>Fri, 01 May 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://zonduu.me/posts/idor-session-cookie/</guid>
+      <description>
+        
+          
+          
+          
+        
+        
+        
+          How I found an IDOR in a session cookie that allowed mass account takeover.
+          
+        
+        </description>
+    </item>
+    
+    <item>
+      <title>Bug Bounty Beginner’s Guide</title>
+      <link>https://zonduu.me/posts/news-guide/</link>
+      <pubDate>Wed, 15 Jan 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://zonduu.me/posts/news-guide/</guid>
+      <description>
+        
+          
+          
+          
+        
+        
+        
+          My personal journey into bug bounty hunting and tips for beginners.
+          
+        
+        </description>
+    </item>
+    
+    <item>
+      <title>Finding and exploiting HTTP Request Smuggling</title>
+      <link>https://zonduu.me/posts/http-smug/</link>
+      <pubDate>Wed, 01 Jan 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://zonduu.me/posts/http-smug/</guid>
+      <description>
+        
+          
+          
+          
+        
+        
+        
+          How to find HTTP Request Smuggling in the wild
+          
+        
+        </description>
+    </item>
+    
+  </channel>
+</rss>

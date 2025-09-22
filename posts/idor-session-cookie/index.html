@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    
+      <title>
+        IDOR in Session cookie leading to Mass Account Takeover ::
+        zonduu
+      </title>
+    
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta
+  name="description"
+  content="If you are familiar with what IDOR is, you will know that it can be anywhere from url, request body, GET or POST requests and yes, in cookies too..
+After spending quite a lot of time in a private program i was invited, i started to learn how everything works, and that usually means (not every time) that you are more likely to find more bugs, and that’s what happened to me… i ended up in top 1 in the leader-board next to a few well-known Hackers :)
+"
+/>
+<meta
+  name="keywords"
+  content=""
+/>
+<meta name="robots" content="noodp" />
+<link rel="canonical" href="https://zonduu.me/posts/idor-session-cookie/" />
+
+
+
+
+
+<link rel="stylesheet" href="/css/style.css">
+
+<link rel="stylesheet" href="https://zonduu.me/style.css" />
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+
+<link rel="apple-touch-icon-precomposed" sizes="144x144" href="https://zonduu.me/img/apple-touch-icon-144-precomposed.png" />
+<link rel="shortcut icon" href="https://zonduu.me/img/favicon.png" />
+
+
+<link href="/fonts/Inter-Italic.woff2" rel="preload" type="font/woff2" as="font" crossorigin="">
+<link href="/fonts/Inter-Regular.woff2" rel="preload" type="font/woff2" as="font" crossorigin="">
+<link href="/fonts/Inter-Medium.woff2" rel="preload" type="font/woff2" as="font" crossorigin="">
+<link href="/fonts/Inter-MediumItalic.woff2" rel="preload" type="font/woff2" as="font" crossorigin="">
+<link href="/fonts/Inter-Bold.woff2" rel="preload" type="font/woff2" as="font" crossorigin="">
+<link href="/fonts/Inter-BoldItalic.woff2" rel="preload" type="font/woff2" as="font" crossorigin="">
+
+
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="IDOR in Session cookie leading to Mass Account Takeover">
+  <meta name="twitter:description" content="How I found an IDOR in a session cookie that allowed mass account takeover.">
+
+
+
+<meta property="og:url" content="https://zonduu.me/posts/idor-session-cookie/">
+  <meta property="og:site_name" content="zonduu">
+  <meta property="og:title" content="IDOR in Session cookie leading to Mass Account Takeover">
+  <meta property="og:description" content="How I found an IDOR in a session cookie that allowed mass account takeover.">
+  <meta property="og:locale" content="en_us">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2020-05-01T00:00:00+00:00">
+    <meta property="article:modified_time" content="2020-05-01T00:00:00+00:00">
+
+
+
+<meta name="google-adsense-account" content="ca-pub-6629477156127628">
+
+
+  </head>
+  <body class="dark-theme">
+    <div class="container">
+      <header class="header">
+  <span class="header__inner">
+    <a
+  href="/"
+  class="logo"
+  style="text-decoration: none;"
+>
+  
+    <span class="logo__mark"><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44">
+  <path fill="none" d="M15 8l14.729 14.382L15 35.367" />
+</svg>
+</span>
+    <span class="logo__text"
+      >root@localhost:~#</span
+    >
+    <span class="logo__cursor"></span>
+  
+</a>
+
+
+    <span class="header__right">
+      
+      
+
+      
+      <a class="posts-link" href="/posts/">Posts</a>
+      <span class="separator">|</span>
+
+      <span class="theme-toggle">
+        <svg
+  class="theme-toggler"
+  width="24"
+  height="24"
+  viewBox="0 0 48 48"
+  fill="none"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <path
+    d="M22 41C32.4934 41 41 32.4934 41 22C41 11.5066 32.4934 3 22
+  3C11.5066 3 3 11.5066 3 22C3 32.4934 11.5066 41 22 41ZM7 22C7
+  13.7157 13.7157 7 22 7V37C13.7157 37 7 30.2843 7 22Z"
+  />
+</svg>
+
+      </span>
+    </span>
+  </span>
+</header>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      <div class="content">
+        
+  
+  
+
+  <article class="post">
+    <h1 class="post-title">IDOR in Session cookie leading to Mass Account Takeover</h1>
+    <div class="post-meta">
+      
+        <time class="post-date">
+          2020-05-01
+        </time>
+
+        
+          
+        
+      
+
+      
+
+
+      
+    </div>
+
+    
+
+    
+
+    <div class="post-content">
+      
+      <p>If you are familiar with what IDOR is, you will know that it can be anywhere from url, request body, GET or POST requests and yes, in cookies too..</p>
+<hr>
+<p>After spending quite a lot of time in a private program i was invited, i started to learn how everything works, and that usually means (not every time) that you are more likely to find more bugs, and that’s what happened to me… i ended up in top 1 in the leader-board next to a few well-known Hackers :)</p>
+<p><img src="/idor-1.png" alt="Leaderboard"></p>
+<h2 id="finding-the-vulnerability">
+  Finding the vulnerability
+  <a href="#finding-the-vulnerability" class="h-anchor" aria-hidden="true">#</a>
+</h2>
+<p>When testing/analyzing the workflow of a web application i am usually looking for any type of token/ID that can be used to gain information or perform sensitive actions that can lead to IDOR.</p>
+<p>In was trying to reproduce a CSRF issue when i noticed that in the cookies there was one called shoppingID that resulted to be the Session Cookie.</p>
+<p>After taking a closer look at the cookie’s value i realized something that quickly got my attention:</p>
+<pre tabindex="0"><code>shoppingID=88ea39539e74fa67c09a4fc0bc8ebe6d00978392PEr9ySESSIONID3552522PXGLkC;
+</code></pre><p>Have you noticed? If not, please don’t continue and look at it again.</p>
+<p>If you noticed it then congratulations, you might have a quick eye for possible IDORs.</p>
+<p>At the end of the cookie there is SESSIONID and 7 numbers: <code>SESSIONID3552522</code>. I quickly created a new account and looked at the session cookie and it was really similar but with some differences.</p>
+<pre tabindex="0"><code>shoppingID=88ea39539e74fa67c09a4fc0bc8ebe6d00978392HAB6FSESSIONID3552538KMDALK;
+</code></pre><p>Most of the cookie’s value was the same in both session cookies, and that usually means a problem. The first part was completely the same, the only difference was in the 5 random characters before and after <code>SESSIONID{numbers}</code>. It took me some time to analyze the cookie’s value but then i realized that those random characters <em>weren’t validated by the server</em> so changing only the numeric ID (the 7 digits after the ‘SESSIONID’) would give me complete access to the any account.</p>
+<p>This is how the cookie looked like separated in A, B and C.</p>
+<p><img src="/idor-2.png" alt="Cookie breakdown"></p>
+<hr>
+<h2 id="exploitation">
+  Exploitation
+  <a href="#exploitation" class="h-anchor" aria-hidden="true">#</a>
+</h2>
+<p>After the creation of a few accounts i found out the following:</p>
+<ul>
+<li><strong>[A]</strong> = This was repeated in my test accounts, a pattern validated in the server (there are also other different patterns).</li>
+<li><strong>[B]</strong> = This is the number assigned incrementally in account creation, this is exploitable.</li>
+<li><strong>[C]</strong> = This is a combination of random numbers and letters that isn’t validated in the server.</li>
+</ul>
+<p>So because <strong>[B]</strong> was numeric only, <strong>[C]</strong> wasn’t validated and <strong>[A]</strong> was a pattern repeated on other accounts, it was possible to just brute-force the ID to gain complete access to other accounts.</p>
+<p>This access token was permanent and didn’t change over time, so this would give me complete access to other account’s including credit cards if stored in their accounts.</p>
+<p><img src="/idor-3.png" alt="Proof of concept"></p>
+<hr>
+<h2 id="impact">
+  Impact
+  <a href="#impact" class="h-anchor" aria-hidden="true">#</a>
+</h2>
+<p>It took some time for the H1 team to understand that a session cookie IDOR was actually possible. At the end it was resolved and awarded <strong>$2,000</strong> as the max payout for a Critical Vulnerability.</p>
+<hr>
+<h2 id="conclusion">
+  Conclusion
+  <a href="#conclusion" class="h-anchor" aria-hidden="true">#</a>
+</h2>
+<p>That was all, i hope you like it :D</p>
+<p>If you feel like buying me a coffee because you liked what you just read, feel free to do it here: <a href="https://www.buymeacoffee.com/zonduu">https://www.buymeacoffee.com/zonduu</a></p>
+
+    </div>
+    
+
+    
+      
+    
+  </article>
+
+      </div>
+
+      
+        <footer class="footer">
+  <div class="footer__inner">
+    
+      <div class="copyright">
+   
+      </div>
+    
+  </div>
+</footer>
+
+
+
+
+
+<script type="text/javascript" src="/bundle.min.js"></script>
+
+
+      
+    </div>
+
+  </body>
+</html>

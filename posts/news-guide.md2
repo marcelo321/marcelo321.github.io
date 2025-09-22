@@ -1,0 +1,36 @@
+---
+
+title: "Bug Bounty Beginner's Guide"
+
+date: 2020-01-15
+
+draft: false
+
+---
+
+
+
+There are lots of guides on how to start into Bug Bounty Hunting but I will share my personal experience of getting into bug bounty hunting without previous knowledge of coding or web development and will also share some useful resources as well as answering some common questions.
+
+
+
+\## How I started?
+
+
+
+I started hunting for bugs without knowing any web development. I joined H1 without knowing what XSS was. It took me a little more than a year to be where I am. Constant learning and studying. This is a competitive field, you can earn money but it won’t be easy, you need to earn it.
+
+
+
+I had no idea how a lot of things worked but eventually I learned about them. Now I can proudly say I found all Top 10 Owasp vulnerabilities like SQLi, RCE, XXE apart from many more, but it took a lot of hard work. It didn’t happen from one day to another.
+
+
+
+Right now this is my full time job.
+
+
+
+
+
+\*\*asd\*\*
+
