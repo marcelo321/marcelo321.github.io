@@ -35,6 +35,26 @@
     </item>
     
     <item>
+      <title>SSRF to fetch AWS credentials with full access to multiple services</title>
+      <link>https://zonduu.me/posts/critical-ssrf/</link>
+      <pubDate>Fri, 01 May 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://zonduu.me/posts/critical-ssrf/</guid>
+      <description>
+        
+          
+          
+          
+        
+        
+        
+          How I found an SSRF to fetch AWS credentials with full access to multiple services.
+          
+        
+        </description>
+    </item>
+    
+    <item>
       <title>Bug Bounty Beginner’s Guide</title>
       <link>https://zonduu.me/posts/news-guide/</link>
       <pubDate>Wed, 15 Jan 2020 00:00:00 +0000</pubDate>
