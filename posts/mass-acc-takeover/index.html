@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    
+      <title>
+        No rate‑limit on OTP verification leads to 10k bounty ::
+        zonduu
+      </title>
+    
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta
+  name="description"
+  content="Disclaimer — redactions
+This write-up describes a real vulnerability I discovered in a bug‑bounty program. The target is intentionally redacted (hosts, cookies, exact endpoints and company identifiers removed) so this public post does not disclose sensitive data or enable malicious reuse. All examples, PoC requests and identifiers below have been sanitized.
+Summary#A missing or ineffective rate limit on an OTP/verification endpoint allowed an attacker to repeatedly submit one‑time codes and obtain a valid authentication token for any account (by only knowing the victim&rsquo;s email). By automating requests and combining modest parallelism with simple IP rotation, I was able to send large numbers of verification attempts in a short time and obtain access tokens.
+"
+/>
+<meta
+  name="keywords"
+  content=""
+/>
+<meta name="robots" content="noodp" />
+<link rel="canonical" href="https://zonduu.me/posts/mass-acc-takeover/" />
+
+
+
+
+
+<link rel="stylesheet" href="/css/style.css">
+
+<link rel="stylesheet" href="https://zonduu.me/style.css" />
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+
+<link rel="apple-touch-icon-precomposed" sizes="144x144" href="https://zonduu.me/img/apple-touch-icon-144-precomposed.png" />
+<link rel="shortcut icon" href="https://zonduu.me/alien.png" />
+
+
+<link href="/fonts/Inter-Italic.woff2" rel="preload" type="font/woff2" as="font" crossorigin="">
+<link href="/fonts/Inter-Regular.woff2" rel="preload" type="font/woff2" as="font" crossorigin="">
+<link href="/fonts/Inter-Medium.woff2" rel="preload" type="font/woff2" as="font" crossorigin="">
+<link href="/fonts/Inter-MediumItalic.woff2" rel="preload" type="font/woff2" as="font" crossorigin="">
+<link href="/fonts/Inter-Bold.woff2" rel="preload" type="font/woff2" as="font" crossorigin="">
+<link href="/fonts/Inter-BoldItalic.woff2" rel="preload" type="font/woff2" as="font" crossorigin="">
+
+
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="No rate‑limit on OTP verification leads to 10k bounty">
+  <meta name="twitter:description" content="How I found and exploited a missing rate limit on an OTP verification endpoint that allowed mass account takeover by brute forcing one-time codes.">
+
+
+
+<meta property="og:url" content="https://zonduu.me/posts/mass-acc-takeover/">
+  <meta property="og:site_name" content="zonduu">
+  <meta property="og:title" content="No rate‑limit on OTP verification leads to 10k bounty">
+  <meta property="og:description" content="How I found and exploited a missing rate limit on an OTP verification endpoint that allowed mass account takeover by brute forcing one-time codes.">
+  <meta property="og:locale" content="en_us">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2025-09-22T00:00:00+00:00">
+    <meta property="article:modified_time" content="2025-09-22T00:00:00+00:00">
+
+
+
+
+<meta name="google-adsense-account" content="ca-pub-6629477156127628">
+
+
+<link rel="stylesheet" href="/style.css">
+<link rel="icon" href="/favicon.ico">
+
+
+  </head>
+  <body class="dark-theme">
+    <div class="container">
+      <header class="header">
+  <span class="header__inner">
+    <a
+  href="/"
+  class="logo"
+  style="text-decoration: none;"
+>
+  
+    <span class="logo__mark"><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44">
+  <path fill="none" d="M15 8l14.729 14.382L15 35.367" />
+</svg>
+</span>
+    <span class="logo__text"
+      >root@localhost:~#</span
+    >
+    <span class="logo__cursor"></span>
+  
+</a>
+
+
+    <span class="header__right">
+      
+      
+
+      
+      <a class="posts-link" href="/posts/">Posts</a>
+      <span class="separator">|</span>
+
+      <span class="theme-toggle">
+        <svg
+  class="theme-toggler"
+  width="24"
+  height="24"
+  viewBox="0 0 48 48"
+  fill="none"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <path
+    d="M22 41C32.4934 41 41 32.4934 41 22C41 11.5066 32.4934 3 22
+  3C11.5066 3 3 11.5066 3 22C3 32.4934 11.5066 41 22 41ZM7 22C7
+  13.7157 13.7157 7 22 7V37C13.7157 37 7 30.2843 7 22Z"
+  />
+</svg>
+
+      </span>
+    </span>
+  </span>
+</header>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      <div class="content">
+        
+  
+  
+
+  <article class="post">
+    <h1 class="post-title">No rate‑limit on OTP verification leads to 10k bounty</h1>
+    <div class="post-meta">
+      
+        <time class="post-date">
+          2025-09-22
+        </time>
+
+        
+          
+        
+      
+
+      
+
+
+      
+    </div>
+
+    
+
+    
+
+    <div class="post-content">
+      
+      <p><strong>Disclaimer — redactions</strong></p>
+<p>This write-up describes a real vulnerability I discovered in a bug‑bounty program. The target is intentionally redacted (hosts, cookies, exact endpoints and company identifiers removed) so this public post does not disclose sensitive data or enable malicious reuse. All examples, PoC requests and identifiers below have been sanitized.</p>
+<hr>
+<h2 id="summary">
+  Summary
+  <a href="#summary" class="h-anchor" aria-hidden="true">#</a>
+</h2>
+<p>A missing or ineffective rate limit on an OTP/verification endpoint allowed an attacker to repeatedly submit one‑time codes and obtain a valid authentication token for <strong>any</strong> account (by only knowing the victim&rsquo;s email). By automating requests and combining modest parallelism with simple IP rotation, I was able to send large numbers of verification attempts in a short time and obtain access tokens.</p>
+<p>Impact: <strong>Mass account takeover</strong> — full account compromise for any user whose email address is known.</p>
+<hr>
+<h2 id="timeline-abridged">
+  Timeline (abridged)
+  <a href="#timeline-abridged" class="h-anchor" aria-hidden="true">#</a>
+</h2>
+<ul>
+<li>I found a flow on a subdomain where a verification code is submitted/checked.</li>
+<li>The endpoint didn&rsquo;t enforce practical limits. But cloudflare would stop you if you send a lot of requests.</li>
+<li>Initial PoC: Burp Intruder with a small number of threads (10) and payload lists—differences in responses hinted at success.</li>
+<li>Later testing: scaled to thousands/100k attempts using a combination of local tooling, IP rotation and parallel threads. I could hit 100k requests in minutes in my controlled tests.</li>
+<li>Reported to the vendor via HackerOne; triaged and fixed after validation.</li>
+</ul>
+<hr>
+<h2 id="how-it-works-technical-details">
+  How it works (technical details)
+  <a href="#how-it-works-technical-details" class="h-anchor" aria-hidden="true">#</a>
+</h2>
+<p>Typical OTP flows:</p>
+<ol>
+<li>User provides email -&gt; server sends a one‑time code to email (or via other channel).</li>
+<li>User posts the code to <code>/graphql</code> (or similar) along with an identifier.</li>
+<li>Server validates code, creates a session / issues an access token.</li>
+</ol>
+<p>The vulnerable implementation failed to enforce any of the following effectively:</p>
+<ul>
+<li>per‑user attempt counter (e.g. block after X failed attempts)</li>
+<li>progressively increasing delays / captchas / blocking on suspicious activity</li>
+<li>global throttling or anomaly detection for the verification endpoint</li>
+</ul>
+<p>Because the endpoint accepted arbitrary numbers of attempts, an attacker who knows a target email can attempt the full codespace until a match is found. Cloudflare would start giving me code 429 after sending a couple of thousands of requests&hellip; but that is easily bypassed.</p>
+<h3 id="codespace-math-quick-reminder">
+  Codespace math (quick reminder)
+  <a href="#codespace-math-quick-reminder" class="h-anchor" aria-hidden="true">#</a>
+</h3>
+<p>If the verification code is numeric and <code>N</code> digits long, the number of possible codes is <code>10^N</code>. For example:</p>
+<ul>
+<li>4 digits → 10,000 possibilities</li>
+<li>6 digits → 1,000,000 possibilities</li>
+<li>8 digits → 100,000,000 possibilities</li>
+</ul>
+<p>The practicality of brute‑forcing depends on code length, token expiry window, and detection/defenses. In this case the application&rsquo;s other protections were absent, making brute forcing feasible.</p>
+<p>In this case it was a 6 digit code so -&gt; 1,000,000 possibilities</p>
+<hr>
+<h2 id="my-methodology-and-poc-notes">
+  My methodology and PoC notes
+  <a href="#my-methodology-and-poc-notes" class="h-anchor" aria-hidden="true">#</a>
+</h2>
+<ul>
+<li><strong>Burp Suite</strong> (Intruder) for high‑speed requests and payload injection.</li>
+<li>IP rotation using the burp extension that redirects your traffic through AWS in selected regions</li>
+</ul>
+<p>I started small (10 threads, Burp Intruder) to confirm the endpoint accepted rapid attempts. The WAF would trigger code 429 when sending multiple requests, but chaging IP would fix the issue. With expanded parallelism and IP diversity, I scaled up to ~100k attempts in &lt;= 8 minutes.</p>
+<hr>
+<h2 id="redacted-http-request-sanitized">
+  Redacted HTTP request (sanitized)
+  <a href="#redacted-http-request-sanitized" class="h-anchor" aria-hidden="true">#</a>
+</h2>
+<p>Below is the <strong>redacted</strong> raw request captured while testing. Sensitive fields (host, cookies, some headers) have been replaced with <code>REDACTED</code> tokens.</p>
+<pre tabindex="0"><code>POST /graphql HTTP/2
+Host: redacted.target.example.com
+Connection: keep-alive
+Accept: application/json, text/plain, */*
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) ...
+Content-Type: application/json
+Origin: https://redacted.target.example.com
+Referer: https://redacted.target.example.com/
+Cookie: session=REDACTED; other_cookie=REDACTED
+Content-Length: 210
+
+{
+  &#34;operationId&#34;:&#34;CreateSessionForVerificationCode&#34;,
+  &#34;variables&#34;: {
+    &#34;identifier&#34;: &#34;victim@example.com&#34;,
+    &#34;identifier_type&#34;: &#34;email&#34;,
+    &#34;verification_code&#34;: &#34;123456&#34;
+  },
+  &#34;extensions&#34;: { &#34;persistedQuery&#34;: { &#34;version&#34;: 1, &#34;sha256Hash&#34;: &#34;REDACTED&#34; } }
+}
+</code></pre><p><strong>Notes on the example above</strong></p>
+<ul>
+<li>The <code>verification_code</code> is shown as a 6‑digit numeric value (used here as an example).</li>
+<li>The endpoint accepted JSON and returned an authentication/session token on success.</li>
+<li>Cookies and hostnames are redacted to avoid revealing sensitive infrastructure.</li>
+<li><strong>~100k requests</strong> over a short period (minutes) with IP rotation — brute forcing at scale was feasible. It was possible to actually do the 1M request in less than 10 minutes (the code would expire in 10 minutes), but I didn&rsquo;t want to bombard the application with that amount of requests.</li>
+</ul>
+<hr>
+<h2 id="why-this-is-critical">
+  Why this is critical
+  <a href="#why-this-is-critical" class="h-anchor" aria-hidden="true">#</a>
+</h2>
+<ul>
+<li>Knowing only an email address, an attacker can eventually obtain a valid code and log in as that user.</li>
+<li>Many sites reuse email addresses for account lookup; high‑privilege accounts or accounts with payment details are at risk.</li>
+<li>Automation + ephemeral proxies make large‑scale attacks readily available to motivated attackers.</li>
+<li>This can lead to mass account takeover, data theft, impersonation, and further post‑exploitation.</li>
+</ul>
+<hr>
+<h2 id="responsible-disclosure-and-outcome">
+  Responsible disclosure and outcome
+  <a href="#responsible-disclosure-and-outcome" class="h-anchor" aria-hidden="true">#</a>
+</h2>
+<p>I reported the issue via HackerOne with PoC videos and logs. The report was triaged as <strong>high</strong> by the Hackerone triager, but fortunately for me the company paid the max bounty.</p>
+<h2 id="bounty">
+  <img src="/rate-limit.png" alt="Bounty">
+  <a href="#bounty" class="h-anchor" aria-hidden="true">#</a>
+</h2>
+<h2 id="final-notes--lessons-learned">
+  Final notes / lessons learned
+  <a href="#final-notes--lessons-learned" class="h-anchor" aria-hidden="true">#</a>
+</h2>
+<ul>
+<li>The company finally fixed the issue by making the OTP code invalid after a few attempts, I tried bypassing the fix with different techniques but all were hopeless</li>
+</ul>
+<p>Follow me on twitter <a href="https://twitter.com/zonduu1">https://twitter.com/zonduu1</a> so you can see where I publish new write-up in my own website,</p>
+<p>&ndash; zonduu</p>
+
+    </div>
+    
+
+    
+      
+    
+  </article>
+
+      </div>
+
+      
+        <footer class="footer">
+  <div class="footer__inner">
+    
+      <div class="copyright">
+   
+      </div>
+    
+  </div>
+</footer>
+
+
+
+
+
+<script type="text/javascript" src="/bundle.min.js"></script>
+
+
+      
+    </div>
+
+  </body>
+</html>

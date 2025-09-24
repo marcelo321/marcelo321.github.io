@@ -9,10 +9,30 @@
     <description>Recent content in Posts on zonduu</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Fri, 01 May 2020 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Mon, 22 Sep 2025 00:00:00 +0000</lastBuildDate>
     
 	<atom:link href="https://zonduu.me/posts/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>No rate‑limit on OTP verification leads to 10k bounty</title>
+      <link>https://zonduu.me/posts/mass-acc-takeover/</link>
+      <pubDate>Mon, 22 Sep 2025 00:00:00 +0000</pubDate>
+      
+      <guid>https://zonduu.me/posts/mass-acc-takeover/</guid>
+      <description>
+        
+          
+          
+          
+        
+        
+        
+          How I found and exploited a missing rate limit on an OTP verification endpoint that allowed mass account takeover by brute forcing one-time codes.
+          
+        
+        </description>
+    </item>
     
     <item>
       <title>IDOR in Session cookie leading to Mass Account Takeover</title>
