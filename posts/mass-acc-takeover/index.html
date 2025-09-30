@@ -9,11 +9,14 @@
     
     <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta property="og:image" content="https://zonduu.me/rate-limit.png" />    
 <meta
   name="description"
   content="Disclaimer — redactions
 This write-up describes a real vulnerability I discovered in a bug‑bounty program. The target is intentionally redacted (hosts, cookies, exact endpoints and company identifiers removed) so this public post does not disclose sensitive data or enable malicious reuse. All examples, PoC requests and identifiers below have been sanitized.
-Summary#A missing or ineffective rate limit on an OTP/verification endpoint allowed an attacker to repeatedly submit one‑time codes and obtain a valid authentication token for any account (by only knowing the victim&rsquo;s email). By automating requests and combining modest parallelism with simple IP rotation, I was able to send large numbers of verification attempts in a short time and obtain access tokens.
+Summary
+#
+A missing or ineffective rate limit on an OTP/verification endpoint allowed an attacker to repeatedly submit one‑time codes and obtain a valid authentication token for any account (by only knowing the victim&rsquo;s email). By automating requests and combining modest parallelism with simple IP rotation, I was able to send large numbers of verification attempts in a short time and obtain access tokens.
 "
 />
 <meta
@@ -329,3 +332,4 @@ Content-Length: 210
 
   </body>
 </html>
+
