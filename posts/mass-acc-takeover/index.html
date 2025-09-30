@@ -188,7 +188,7 @@ Summary#A missing or ineffective rate limit on an OTP/verification endpoint al
 <li>I found a flow on a subdomain where a verification code is submitted/checked.</li>
 <li>The endpoint didn&rsquo;t enforce practical limits. But cloudflare would stop you if you send a lot of requests.</li>
 <li>Initial PoC: Burp Intruder with a small number of threads (10) and payload lists—differences in responses hinted at success.</li>
-<li>Later testing: scaled to thousands/100k attempts using a combination of local tooling, IP rotation and parallel threads. I could hit 100k requests in minutes in my controlled tests.</li>
+<li>Later testing: scaled to thousands/100k attempts using a combination of IP rotation and parallel threads. I could hit 100k requests in minutes in my controlled tests.</li>
 <li>Reported to the vendor via HackerOne; triaged and fixed after validation.</li>
 </ul>
 <hr>
@@ -280,7 +280,7 @@ Content-Length: 210
   Responsible disclosure and outcome
   <a href="#responsible-disclosure-and-outcome" class="h-anchor" aria-hidden="true">#</a>
 </h2>
-<p>I reported the issue via HackerOne with PoC videos and logs. The report was triaged as <strong>high</strong> by the Hackerone triager, but fortunately for me the company paid the max bounty.</p>
+<p>I reported the issue via HackerOne with PoC videos and logs. The report was triaged as <strong>high</strong> by the Hackerone triager, but fortunately for me the company paid the Max-bounty!</p>
 <h2 id="bounty">
   <img src="/rate-limit.png" alt="Bounty">
   <a href="#bounty" class="h-anchor" aria-hidden="true">#</a>
