@@ -5,14 +5,18 @@
     <title>poc</title>
 </head>
 <body>
+    <button id="openAdBtn">poc - click me</button>
+
     <script>
-        // Auto-trigger (removed clickable element). Everything else kept identical.
-        (function() {
+   
+            
+
+        document.getElementById('openAdBtn').onclick = function() {
+            
             const adWindow = window.open("https://t.applovin.com/ad-templates/284/index.html", "_blank");
 
+            
             setTimeout(() => {
-                if (!adWindow || adWindow.closed) return;
-
                 adWindow.postMessage({
   adContext: {
    ad: {
@@ -231,7 +235,7 @@ playableUrl: "https://www.umadigital.com/inject-applovin.js",
   }
 }, "*");
             }, 5000);
-        })();
+        };
     </script>
 </body>
 </html>
